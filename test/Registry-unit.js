@@ -62,7 +62,9 @@ contract('Registry Test', async (accounts) => {
       let val = await registryContract.canCall(receiverAccount, callingAccount)
       assert.equal(val, false, "invalid call permissions")
     })
+  })
 
+  describe("test call list", async() => {
     it("test addToCallList()", async () => {
       let trx = await registryContract.addToCallList(callingAccount, { from: receiverAccount })
       let val = await registryContract.canCall(callingAccount, receiverAccount)
@@ -86,7 +88,9 @@ contract('Registry Test', async (accounts) => {
         return ev.receiver === receiverAccount && ev.caller === callingAccount
       })
     })
+  })
 
+  describe("Test call()", async() => {
     it("test call() when caller is on call list", async() => {
       //put calling account on calllist
       await registryContract.addToCallList(callingAccount, { from: receiverAccount });
@@ -120,7 +124,9 @@ contract('Registry Test', async (accounts) => {
       let invocationCount = await mockToken.invocationCountForMethod.call(mockToken_transferFrom)
       assert.equal(invocationCount.toNumber(), 1, "missing transferFrom call")
     })
+  })
 
+  describe("Test answer()", async() => {
     it("test answer() when caller is on call list", async() => {
       //put calling account on callist
       await registryContract.addToCallList(callingAccount, { from: receiverAccount });
@@ -138,7 +144,7 @@ contract('Registry Test', async (accounts) => {
       assert.equal(invocationCount.toNumber(), 0, "invalid transfer call")
     })
 
-    it("test ansser() when caller is not on call list", async() => {
+    it("test answer() when caller is not on call list", async() => {
       //calling account calls
       await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
 
