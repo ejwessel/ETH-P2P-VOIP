@@ -40,18 +40,18 @@ contract('Registry Test', async (accounts) => {
       assert.equal(val, false, "invalid call permissions")
     })
 
-    it("test addToWhitelist()", async () => {
-      await registryContract.addToWhitelist(callingAccount, { from: calleeAccount })
+    it("test addToCallList()", async () => {
+      await registryContract.addToCallList(callingAccount, { from: calleeAccount })
       let val = await registryContract.canCall(callingAccount, calleeAccount)
       assert.equal(val, true, "invalid call permissions")
     })
 
-    it("test removeFromWhitelist()", async () => {
-      await registryContract.addToWhitelist(callingAccount, { from: calleeAccount })
+    it("test removeFromCallList()", async () => {
+      await registryContract.addToCallList(callingAccount, { from: calleeAccount })
       let before = await registryContract.canCall(callingAccount, calleeAccount)
       assert.equal(before, true, "invalid call permissions")
 
-      await registryContract.removeFromWhitelist(callingAccount, { from: calleeAccount })
+      await registryContract.removeFromCallList(callingAccount, { from: calleeAccount })
       let after = await registryContract.canCall(callingAccount, calleeAccount)
       assert.equal(after, false, "invalid call permissions")
     })
