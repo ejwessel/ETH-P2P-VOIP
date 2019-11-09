@@ -1,11 +1,14 @@
 const Registry = artifacts.require("Registry");
 const helper = require('ganache-time-traveler');
 const truffleAssert = require('truffle-assertions');
+const MockContract = artifacts.require("MockContract");
+const ERC20 = artifacts.require("ERC20Mintable");
+
 
 contract('Registry Test', async (accounts) => {
   let receiverAccount = accounts[1]
   let callingAccount = accounts[2]
-  let token = accounts[3]
+  let token
   let registryContract
   let snapshotId
 
@@ -20,22 +23,25 @@ contract('Registry Test', async (accounts) => {
 
   before(async() => {
     registryContract = await Registry.new();
+    token = await MockContract.new();
+
+
   });
 
   describe("Test", async () => {
     it("test getPrice()", async () => {
-      let price = await registryContract.getPrice(receiverAccount, token)
+      let price = await registryContract.getPrice(receiverAccount, token.address)
       assert.equal(price.toNumber(), 0, "invalid price set")
     })
     
     it("test setPrice()", async () => {
       let priceToSet = 300
-      let trx = await registryContract.setPrice(token, priceToSet, { from: receiverAccount });
-      let price = await registryContract.getPrice(receiverAccount, token)
+      let trx = await registryContract.setPrice(token.address, priceToSet, { from: receiverAccount });
+      let price = await registryContract.getPrice(receiverAccount, token.address)
       assert.equal(price.toNumber(), price, "invalid price set")
 
-      truffleAssert.eventEmitted(trx, 'PriceSet', (ev) => {
-        return ev.receiver === receiverAccount && ev.token === token, ev.price.toNumber() === priceToSet
+      await truffleAssert.eventEmitted(trx, 'PriceSet', (ev) => {
+        return ev.receiver === receiverAccount && ev.token === token.address, ev.price.toNumber() === priceToSet
       })
     })
 
@@ -49,7 +55,7 @@ contract('Registry Test', async (accounts) => {
       let val = await registryContract.canCall(callingAccount, receiverAccount)
       assert.equal(val, true, "invalid call permissions")
 
-      truffleAssert.eventEmitted(trx, 'CallListAdded', (ev) => {
+      await truffleAssert.eventEmitted(trx, 'CallListAdded', (ev) => {
         return ev.receiver === receiverAccount && ev.caller === callingAccount
       })
     })
@@ -63,9 +69,20 @@ contract('Registry Test', async (accounts) => {
       let after = await registryContract.canCall(callingAccount, receiverAccount)
       assert.equal(after, false, "invalid call permissions")
 
-      truffleAssert.eventEmitted(trx, 'CallListRemoved', (ev) => {
+      await truffleAssert.eventEmitted(trx, 'CallListRemoved', (ev) => {
         return ev.receiver === receiverAccount && ev.caller === callingAccount
       })
+    })
+
+    it("test call() when caller is whitelited", async() => {
+      let trx = await registryContract.call(receiverAccount, token.address, { from: callingAccount })
+      await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
+        return ev.receiver === receiverAccount && ev.caller === callingAccount
+      })
+    })
+
+    it("test call() when caller is not whitelisted", async() => {
+
     })
   })
 });
