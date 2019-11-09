@@ -3,11 +3,14 @@ const helper = require('ganache-time-traveler');
 const truffleAssert = require('truffle-assertions');
 const MockContract = artifacts.require("MockContract");
 const ERC20 = artifacts.require("ERC20Mintable")
+const BigNumber = require('bignumber.js')
 const EMPTY_ADDRESS = '0x0000000000000000000000000000000000000000';
+const MAX_INT = new BigNumber("1.15792089237316195423570985008687907853269984665640564039457584007913129639935e+77")
 
 contract('Registry Test', async (accounts) => {
   let receiverAccount = accounts[1]
   let callingAccount = accounts[2]
+  let nonExistentReceiver = accounts[3]
   let mockToken
   let mockToken_transferFrom 
   let registryContract
@@ -41,10 +44,11 @@ contract('Registry Test', async (accounts) => {
     await mockToken.givenMethodReturnBool(mockToken_transfer, true)
   });
 
-  describe("Test", async () => {
+  describe("test default values", async () => {
     it("test getPrice()", async () => {
       let price = await registryContract.getPrice(receiverAccount, mockToken.address)
-      assert.equal(price.toNumber(), 0, "invalid price set")
+      let price_BN = new BigNumber(price)
+      assert.equal(price_BN.toString(), MAX_INT.toString(), "invalid price set")
     })
     
     it("test setPrice()", async () => {
@@ -54,7 +58,9 @@ contract('Registry Test', async (accounts) => {
       assert.equal(price.toNumber(), price, "invalid price set")
 
       await truffleAssert.eventEmitted(trx, 'PriceSet', (ev) => {
-        return ev.receiver === receiverAccount && ev.mockToken === mockToken.address, ev.price.toNumber() === priceToSet
+        return ev.receiver === receiverAccount 
+          && ev.token === mockToken.address 
+          && ev.price.toNumber() === priceToSet
       })
     })
 
