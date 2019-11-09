@@ -27,10 +27,18 @@ contract('Registry Test', async (accounts) => {
 
     mockToken = await MockContract.new();
     let mockTokenTemplate = await ERC20.new();
+
+    //mock transferFrom
     mockToken_transferFrom = await mockTokenTemplate.contract.methods
       .transferFrom(EMPTY_ADDRESS, EMPTY_ADDRESS, 0)
       .encodeABI()
     await mockToken.givenMethodReturnBool(mockToken_transferFrom, true)
+
+    //mock transfer
+    mockToken_transfer = await mockTokenTemplate.contract.methods
+      .transfer(EMPTY_ADDRESS, 0)
+      .encodeABI()
+    await mockToken.givenMethodReturnBool(mockToken_transfer, true)
   });
 
   describe("Test", async () => {
@@ -86,7 +94,9 @@ contract('Registry Test', async (accounts) => {
       //calling account calls
       let trx = await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
       await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
-        return ev.receiver === receiverAccount && ev.caller === callingAccount
+        return ev.receiver === receiverAccount
+          && ev.caller === callingAccount 
+          && ev.token === mockToken.address
       })
 
       //inspect invocation of transferFrom
@@ -101,12 +111,31 @@ contract('Registry Test', async (accounts) => {
       //calling account calls
       let trx = await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
       await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
-        return ev.receiver === receiverAccount && ev.caller === callingAccount
+        return ev.receiver === receiverAccount 
+          && ev.caller === callingAccount 
+          && ev.token === mockToken.address
       })
 
       //inspect invocation of transferFrom
       let invocationCount = await mockToken.invocationCountForMethod.call(mockToken_transferFrom)
       assert.equal(invocationCount.toNumber(), 1, "missing transferFrom call")
+    })
+
+    it("test answer() when caller is on call list", async() => {
+      //put calling account on callist
+      await registryContract.addToCallList(callingAccount, { from: receiverAccount });
+
+      //calling account calls
+      await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
+
+      let trx = await registryContract.answer(callingAccount);
+      await truffleAssert.eventEmitted(trx, 'AnswerCall', (ev) => {
+        return ev.receiver === receiverAccount && ev.caller === callingAccount
+      })
+
+      //inspect invocation of transfer
+      let invocationCount = await mockToken.invocationCountForMethod.call(mockToken_transfer)
+      console.log(invocationCount.toNumber())
     })
   })
 });

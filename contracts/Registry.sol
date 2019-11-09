@@ -7,12 +7,13 @@ contract Registry {
   event CallListAdded(address receiver, address caller);
   event CallListRemoved(address receiver, address caller);
   event PriceSet(address receiver, address token, uint256 price);
-  event IncomingCall(address receiver, address caller, uint256 timestamp);
+  event IncomingCall(address receiver, address caller, address token, uint256 timestamp);
   event AnswerCall(address receiver, address caller, uint256 timestamp);
 
   uint256 constant pendingLimit = 2 minutes;
 
   struct PendingAmount {
+    address token;
     uint256 amount;
     uint256 timestamp;
   }
@@ -57,31 +58,31 @@ contract Registry {
     //if they're not allowed to call the receiver they need to pay
     if (!this.canCall(msg.sender, receiver)) {
       //keep track of how much can be withdrawn
-      pendingAmount[msg.sender][receiver] = PendingAmount(pricing[receiver][token], currentTime); 
+      pendingAmount[msg.sender][receiver] = PendingAmount(token, pricing[receiver][token], currentTime); 
 
       //money is moved into the contract temporarily and is locked for a duration
       IERC20(token).transferFrom(msg.sender, address(this), pricing[receiver][token]);
     }
 
     //emit the call
-    emit IncomingCall(receiver, msg.sender, currentTime);
+    emit IncomingCall(receiver, msg.sender, token, currentTime);
   }
 
-//  function answer(address caller) external {
-//    if (!this.canCall(caller, msg.sender) {
-//      PendingAmount pending = pendingAmount[caller][msg.sender]
-//
-//      //check if the call is still valid pending limit?
-//      require(now < (pending.timestamp + pendingLimit), "Call is no longer valid")
-//
-//      //withdraw funds they would have paid
-//      token.transfer(msg.sender, pending.amount);
-//    }
-//
-//    //emit the answer
-//    emit AnswerCall(caller, msg.sender, now)
-//  }
-//
+  function answer(address caller) external {
+    if (!this.canCall(caller, msg.sender)) {
+      PendingAmount memory pending = pendingAmount[caller][msg.sender];
+
+      //check if the call is still valid pending limit?
+      require(now < (pending.timestamp + pendingLimit), "Call is no longer valid");
+
+      //withdraw funds they would have paid
+      IERC20(pending.token).transfer(msg.sender, pending.amount);
+    }
+
+    //emit the answer
+    emit AnswerCall(caller, msg.sender, now);
+  }
+
 //  function withdrawPending(address receiver, address token) external {
 //    //withdraw funds from the contract if a call never went through
 //    PendingAmount pending = pendingAmount[msg.sender][receiver]
