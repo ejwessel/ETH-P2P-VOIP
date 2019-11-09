@@ -1,5 +1,7 @@
 pragma solidity 0.5.12;
 
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+
 contract Registry {
 
   event CallListAdded(address receiver, address caller);
@@ -56,7 +58,7 @@ contract Registry {
       pendingAmount[msg.sender][receiver] = PendingAmount(pricing[receiver][token], currentTime); 
 
       //money is moved into the contract temporarily and is locked for a duration
-      //token.transferFrom(msg.sender, this, pricing[receiver][token]);
+      IERC20(token).transferFrom(msg.sender, address(this), pricing[receiver][token]);
     }
 
     //emit the call
