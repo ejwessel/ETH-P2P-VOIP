@@ -128,14 +128,28 @@ contract('Registry Test', async (accounts) => {
       //calling account calls
       await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
 
-      let trx = await registryContract.answer(callingAccount);
+      let trx = await registryContract.answer(callingAccount, { from: receiverAccount });
       await truffleAssert.eventEmitted(trx, 'AnswerCall', (ev) => {
         return ev.receiver === receiverAccount && ev.caller === callingAccount
       })
 
       //inspect invocation of transfer
       let invocationCount = await mockToken.invocationCountForMethod.call(mockToken_transfer)
-      console.log(invocationCount.toNumber())
+      assert.equal(invocationCount.toNumber(), 0, "invalid transfer call")
+    })
+
+    it("test ansser() when caller is not on call list", async() => {
+      //calling account calls
+      await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
+
+      let trx = await registryContract.answer(callingAccount, { from: receiverAccount });
+      await truffleAssert.eventEmitted(trx, 'AnswerCall', (ev) => {
+        return ev.receiver === receiverAccount && ev.caller === callingAccount
+      })
+
+      //inspect invocation of transfer
+      let invocationCount = await mockToken.invocationCountForMethod.call(mockToken_transfer)
+      assert.equal(invocationCount.toNumber(), 1, "invalid transfer call")
     })
   })
 });
