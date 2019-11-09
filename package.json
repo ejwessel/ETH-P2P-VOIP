@@ -1,0 +1,35 @@
+{
+  "name": "hangman",
+  "version": "1.0.0",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "clean": "rm -r ./web/src/contracts",
+    "ganache": "ganache-cli -d",
+    "truffle-test": "yarn clean; yarn truffle-migrate && truffle test test/*"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "keywords": [],
+  "description": "",
+  "devDependencies": {
+    "@gnosis.pm/mock-contract": "2.0.4",
+    "ganache-time-traveler": "^1.0.5",
+    "openzeppelin-solidity": "1.12.0",
+    "ganache-cli": "6.4.3",
+    "truffle": "^5.0.19",
+    "truffle-assertions": "^0.9.0"
+  },
+  "dependencies": {
+  }
+}
