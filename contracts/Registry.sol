@@ -2,15 +2,14 @@ pragma solidity 0.5.12;
 
 contract Registry {
 
-  event CallListAdded(address, address);
-  event CallListRemoved(address, address);
+  event CallListAdded(address receiver, address caller);
+  event CallListRemoved(address receiver, address caller);
+  event PriceSet(address receiver, address token, uint256 price);
 
-  //mapping of callee address to the caller address and a 
-  //boolean value that determines if callee can be called
-  //true means they can call, everybody defaults to false
+  //receiver to caller to can be called. everyone is defaulted to false
   mapping(address => mapping(address => bool)) public callList;
 
-  //mapping of callee address to token to price
+  //receiver to token to price. price of 0 is undefined
   mapping(address => mapping(address => uint256)) public pricing;
 
   function getPrice(address account, address token) external view returns(uint256) {
@@ -19,10 +18,11 @@ contract Registry {
   
   function setPrice(address token, uint256 price) external {
     pricing[msg.sender][token] = price;
+    emit PriceSet(msg.sender, token, price);
   }
 
-  function canCall(address caller, address callee) external view returns(bool) {
-    return callList[callee][caller];
+  function canCall(address caller, address receiver) external view returns(bool) {
+    return callList[receiver][caller];
   }
 
   function addToCallList(address accountToAdd) external {
