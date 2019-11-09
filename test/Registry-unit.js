@@ -157,5 +157,17 @@ contract('Registry Test', async (accounts) => {
       let invocationCount = await mockToken.invocationCountForMethod.call(mockToken_transfer)
       assert.equal(invocationCount.toNumber(), 1, "invalid transfer call")
     })
+
+    it("test answer() when call has expired", async() => {
+      //calling account calls
+      await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
+
+      await helper.advanceTimeAndBlock(500)
+
+      await truffleAssert.reverts(
+        registryContract.answer(callingAccount, { from: receiverAccount }),
+        "Call is no longer valid"
+      );
+    })
   })
 });
