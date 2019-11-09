@@ -10,6 +10,8 @@ contract Registry {
   event IncomingCall(address receiver, address caller, uint256 timestamp);
   event AnswerCall(address receiver, address caller, uint256 timestamp);
 
+  uint256 constant pendingLimit = 2 minutes;
+
   struct PendingAmount {
     uint256 amount;
     uint256 timestamp;
@@ -69,8 +71,8 @@ contract Registry {
 //    if (!this.canCall(caller, msg.sender) {
 //      PendingAmount pending = pendingAmount[caller][msg.sender]
 //
-//      //check if the call is still valid 1 minute limit?
-//      //if (pending.timestamp + x > now)
+//      //check if the call is still valid pending limit?
+//      require(now < (pending.timestamp + pendingLimit), "Call is no longer valid")
 //
 //      //withdraw funds they would have paid
 //      token.transfer(msg.sender, pending.amount);
@@ -78,10 +80,18 @@ contract Registry {
 //
 //    //emit the answer
 //    emit AnswerCall(caller, msg.sender, now)
-//
 //  }
-
-  function withdraw(address token) external {
-    //withdraw funds from the contract
-  }
+//
+//  function withdrawPending(address receiver, address token) external {
+//    //withdraw funds from the contract if a call never went through
+//    PendingAmount pending = pendingAmount[msg.sender][receiver]
+//
+//    require(now > (pending.timestamp + pendingLimit), "Call in progress")
+//
+//    //funds can be returned
+//
+//    //send money back to the caller
+//    delete pendingAmount[msg.sender][receiver]
+//    IERC20(token).transfer(msg.sender, pending.amount);
+//  }
 }

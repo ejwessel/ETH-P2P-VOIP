@@ -9,6 +9,7 @@ contract('Registry Test', async (accounts) => {
   let receiverAccount = accounts[1]
   let callingAccount = accounts[2]
   let mockToken
+  let mockToken_transferFrom 
   let registryContract
   let snapshotId
 
@@ -26,7 +27,7 @@ contract('Registry Test', async (accounts) => {
 
     mockToken = await MockContract.new();
     let mockTokenTemplate = await ERC20.new();
-    let mockToken_transferFrom = await mockTokenTemplate.contract.methods
+    mockToken_transferFrom = await mockTokenTemplate.contract.methods
       .transferFrom(EMPTY_ADDRESS, EMPTY_ADDRESS, 0)
       .encodeABI()
     await mockToken.givenMethodReturnBool(mockToken_transferFrom, true)
@@ -79,7 +80,21 @@ contract('Registry Test', async (accounts) => {
     })
 
     it("test call() when caller is whitelited", async() => {
+      //put calling account on calllist
+      await registryContract.addToCallList(callingAccount, { from: receiverAccount });
 
+      //calling account calls
+      let trx = await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
+      await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
+        return ev.receiver === receiverAccount && ev.caller === callingAccount
+      })
+
+      //inspect invocation of transferFrom
+      let invocationCount = await mockToken.invocationCountForMethod.call(mockToken_transferFrom)
+      assert.equal(invocationCount.toNumber(), 0, "invalid transferFrom call")
+    })
+
+    it("test call() when caller is not whitelisted", async() => {
       //set price of receiver
       await registryContract.setPrice(mockToken.address, 100, { from: receiverAccount })
 
@@ -88,10 +103,10 @@ contract('Registry Test', async (accounts) => {
       await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
         return ev.receiver === receiverAccount && ev.caller === callingAccount
       })
-    })
 
-    it("test call() when caller is not whitelisted", async() => {
-
+      //inspect invocation of transferFrom
+      let invocationCount = await mockToken.invocationCountForMethod.call(mockToken_transferFrom)
+      assert.equal(invocationCount.toNumber(), 1, "missing transferFrom call")
     })
   })
 });
