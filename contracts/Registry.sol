@@ -9,6 +9,7 @@ contract Registry {
   event PriceSet(address receiver, address token, uint256 price);
   event IncomingCall(address receiver, address caller, address token, uint256 timestamp);
   event AnswerCall(address receiver, address caller, uint256 timestamp);
+  event Returned(address caller, address token);
 
   uint256 constant PENDING_LIMIT = 2 minutes;
 
@@ -83,16 +84,18 @@ contract Registry {
     emit AnswerCall(msg.sender, caller, now);
   }
 
-//  function withdrawPending(address receiver, address token) external {
-//    //withdraw funds from the contract if a call never went through
-//    PendingAmount pending = pendingAmount[msg.sender][receiver]
-//
-//    require(now > (pending.timestamp + PENDING_LIMIT), "Call in progress")
-//
-//    //funds can be returned
-//
-//    //send money back to the caller
-//    delete pendingAmount[msg.sender][receiver]
-//    IERC20(token).transfer(msg.sender, pending.amount);
-//  }
+  function withdraw(address receiver, address token) external {
+    //withdraw funds from the contract if a call never went through
+    PendingAmount memory pending = pendingAmount[msg.sender][receiver];
+
+    require(now > (pending.timestamp + PENDING_LIMIT), "Call in progress");
+
+    //funds can be returned
+
+    //send money back to the caller
+    delete pendingAmount[msg.sender][receiver];
+    IERC20(token).transfer(msg.sender, pending.amount);
+
+    emit Returned(msg.sender, token);
+  }
 }

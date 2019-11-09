@@ -170,4 +170,32 @@ contract('Registry Test', async (accounts) => {
       );
     })
   })
+
+  describe("Test withdraw()", async() => {
+    it("test withdraw() when call is in progress", async() => {
+      await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
+      await registryContract.answer(callingAccount, { from: receiverAccount });
+      await truffleAssert.reverts(
+        registryContract.withdraw(receiverAccount, mockToken.address, { from: callingAccount}),
+        "Call in progress"
+      )
+    })
+
+    it("test withdraw() when call has expired", async() => {
+      await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
+      await registryContract.answer(callingAccount, { from: receiverAccount });
+
+      await helper.advanceTimeAndBlock(500)
+
+      let trx = await registryContract.withdraw(receiverAccount, mockToken.address, { from: callingAccount })
+
+      await truffleAssert.eventEmitted(trx, 'Returned', (ev) => {
+        return ev.caller === callingAccount && ev.token === mockToken.address
+      })
+
+      //inspect invocation of transfer; answer and withdraw
+      let invocationCount = await mockToken.invocationCountForMethod.call(mockToken_transfer)
+      assert.equal(invocationCount.toNumber(), 2, "invalid transfer call")
+    })
+  })
 });
