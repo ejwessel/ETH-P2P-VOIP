@@ -8,7 +8,7 @@
   "scripts": {
     "clean": "rm -r ./web/src/contracts",
     "ganache": "ganache-cli -d",
-    "truffle-test": "yarn clean; yarn truffle-migrate && truffle test test/*"
+    "test": "truffle test"
   },
   "repository": {
     "type": "git",
