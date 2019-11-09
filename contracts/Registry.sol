@@ -2,12 +2,13 @@ pragma solidity 0.5.12;
 
 contract Registry {
 
-  event WhitelistAdded(address, address);
-  event WhitelistRemoved(address, address);
+  event CallListAdded(address, address);
+  event CallListRemoved(address, address);
 
   //mapping of callee address to the caller address and a 
   //boolean value that determines if callee can be called
-  mapping(address => mapping(address => bool)) public whitelist;
+  //true means they can call, everybody defaults to false
+  mapping(address => mapping(address => bool)) public callList;
 
   //mapping of callee address to token to price
   mapping(address => mapping(address => uint256)) public pricing;
@@ -21,16 +22,16 @@ contract Registry {
   }
 
   function canCall(address caller, address callee) external view returns(bool) {
-    return whitelist[callee][caller];
+    return callList[callee][caller];
   }
 
-  function addToWhitelist(address accountToAdd) external {
-    whitelist[msg.sender][accountToAdd] = true;
-    emit WhitelistAdded(msg.sender, accountToAdd);
+  function addToCallList(address accountToAdd) external {
+    callList[msg.sender][accountToAdd] = true;
+    emit CallListAdded(msg.sender, accountToAdd);
   }
 
-  function removeFromWhitelist(address accountToRemove) external {
-    delete whitelist[msg.sender][accountToRemove];
-    emit WhitelistRemoved(msg.sender, accountToRemove);
+  function removeFromCallList(address accountToRemove) external {
+    delete callList[msg.sender][accountToRemove];
+    emit CallListRemoved(msg.sender, accountToRemove);
   }
 }
