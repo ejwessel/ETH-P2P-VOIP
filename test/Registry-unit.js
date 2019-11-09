@@ -79,7 +79,7 @@ contract('Registry Test', async (accounts) => {
       })
     })
 
-    it("test call() when caller is whitelited", async() => {
+    it("test call() when caller is on call list", async() => {
       //put calling account on calllist
       await registryContract.addToCallList(callingAccount, { from: receiverAccount });
 
@@ -94,7 +94,7 @@ contract('Registry Test', async (accounts) => {
       assert.equal(invocationCount.toNumber(), 0, "invalid transferFrom call")
     })
 
-    it("test call() when caller is not whitelisted", async() => {
+    it("test call() when caller is not on call list", async() => {
       //set price of receiver
       await registryContract.setPrice(mockToken.address, 100, { from: receiverAccount })
 
