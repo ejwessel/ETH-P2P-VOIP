@@ -48,33 +48,31 @@ contract('Mock Calling', async (accounts) => {
     await mockToken.givenMethodReturnBool(mockToken_transfer, true)
   });
 
-  describe("Perform Call", async() => {
-    it("Perform Calling", async() => {
-      //put calling account on calllist
-      await registryContract.addToCallList(callingAccount, { from: receiverAccount });
+  it("Perform Calling", async() => {
+    //put calling account on calllist
+    await registryContract.addToCallList(callingAccount, { from: receiverAccount });
 
-      //calling account calls
-      let trx = await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
+    //calling account calls
+    let trx = await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
+    console.log("Calling: \n" + callingAccount + " ----> " + receiverAccount)
+    exec(VOIP + " --connect 127.0.0.1:3333", (error, stdout, stderr) => {
+      console.log("error: " + error)
+      console.log("out: " + stdout)
+      console.log("stderr: " + stderr)
+    })
 
-      await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
-        if (ev.receiver !== receiverAccount) return false;
 
-        console.log("Calling...")
-        exec(VOIP + " --connect 127.0.0.1:3333", (error, stdout, stderr) => {
-          console.log("error: " + error)
-          console.log("out: " + stdout)
-          console.log("stderr: " + stderr)
-        })
-
-        console.log("Call Answered")
-        execSync(VOIP + " --listen 3333", (error, stdout, stderr) => {
-          console.log("error: " + error)
-          console.log("out: " + stdout)
-          console.log("stderr: " + stderr)
-        })
-
-        return true
+    //receiving account is listening and answers
+    await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
+      if (ev.receiver !== receiverAccount) return false;
+      console.log("Call Answered: \n" + receiverAccount + " <---- " + callingAccount)
+      execSync(VOIP + " --listen 3333", (error, stdout, stderr) => {
+        console.log("error: " + error)
+        console.log("out: " + stdout)
+        console.log("stderr: " + stderr)
       })
+
+      return true
     })
   })
 });

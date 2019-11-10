@@ -7,7 +7,9 @@
   },
   "scripts": {
     "ganache": "ganache-cli -d",
-    "test": "truffle test"
+    "test": "truffle test test/Registry-unit.js",
+    "call": "truffle test test/Registry-Call-unit.js"
+
   },
   "repository": {
     "type": "git",
