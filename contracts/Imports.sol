@@ -4,4 +4,4 @@ pragma solidity 0.5.12;
 // available when working from truffle console.
 import "@gnosis.pm/mock-contract/contracts/MockContract.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Mintable.sol";
-
+import "./TrueCAD.sol";

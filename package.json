@@ -33,6 +33,7 @@
     "bignumber.js": "github:frozeman/bignumber.js-nolookahead"
   },
   "dependencies": {
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "truffle-hdwallet-provider": "^1.0.17"
   }
 }

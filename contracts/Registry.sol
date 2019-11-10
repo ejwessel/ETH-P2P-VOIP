@@ -67,7 +67,7 @@ contract Registry {
       pendingAmount[msg.sender][receiver] = PendingAmount(token, price, currentTime); 
 
       //money is moved into the contract temporarily and is locked for a duration
-      IERC20(token).transferFrom(msg.sender, address(this), pricing[receiver][token]);
+      IERC20(token).transferFrom(msg.sender, address(this), price);
     }
 
     //emit the call

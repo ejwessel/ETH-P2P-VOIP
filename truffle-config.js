@@ -1,10 +1,19 @@
+const HDWalletProvider = require("truffle-hdwallet-provider");
+require('dotenv').config()  // Store environment-specific variable from '.env' to process.env
+
 module.exports = {
   networks: {
      development: {
       host: "127.0.0.1",     // Localhost (default: none)
       port: 8545,            // Standard Ethereum port (default: none)
       network_id: "*",       // Any network (default: none)
-     }
+     },
+     kovan: {
+       provider: () => new HDWalletProvider(
+         process.env.MNEMONIC,
+         "https://kovan.infura.io/v3/" + process.env.INFURA_API_KEY),
+       network_id: 42,
+    }
   },
 
   // Set default mocha options here, use special reporters etc.
