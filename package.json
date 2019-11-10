@@ -9,7 +9,8 @@
     "ganache": "ganache-cli -d",
     "ganache_fork": "ganache-cli -f $(node get_infura.js) -m \"$(node get_mnemonic.js)\"",
     "test": "truffle test test/Registry-unit.js",
-    "call": "truffle test test/Registry-Call-unit.js"
+    "call-mock": "truffle test test/Registry-Call-unit.js",
+    "call": "truffle test test/Registry-Call-Network.js" 
   },
   "repository": {
     "type": "git",

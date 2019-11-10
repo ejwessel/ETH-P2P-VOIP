@@ -1,52 +1,54 @@
 const Registry = artifacts.require("Registry");
 const truffleAssert = require('truffle-assertions');
-const MockContract = artifacts.require("MockContract");
 const ERC20 = artifacts.require("ERC20Mintable")
 const BigNumber = require('bignumber.js')
 const EMPTY_ADDRESS = '0x0000000000000000000000000000000000000000';
 const MAX_INT = new BigNumber("1.15792089237316195423570985008687907853269984665640564039457584007913129639935e+77")
+const TrueCAD_ADDRESS = "0x00000100F2A2bd000715001920eB70D229700085"
 const PRICE_TO_SET = new BigNumber("300")
 const exec = require("child_process").exec
 const execSync = require("child_process").execSync
 const VOIP = "node ~/Dev/tvoip/Index.js"
 
 contract('Mock Calling', async (accounts) => {
-  let receiverAccount = accounts[1]
-  let callingAccount = accounts[2]
-  let nonExistentReceiver = accounts[3]
-  let mockToken
-  let mockToken_transferFrom 
+  let receiverAccount = accounts[0]
+  let callingAccount = accounts[0]
   let registryContract
 
   before(async() => {
-    registryContract = await Registry.new();
-
-    mockToken = await MockContract.new();
-    let mockTokenTemplate = await ERC20.new();
-
-    //mock transferFrom
-    mockToken_transferFrom = await mockTokenTemplate.contract.methods
-      .transferFrom(EMPTY_ADDRESS, EMPTY_ADDRESS, 0)
-      .encodeABI()
-    await mockToken.givenMethodReturnBool(mockToken_transferFrom, true)
-
-    //mock transfer
-    mockToken_transfer = await mockTokenTemplate.contract.methods
-      .transfer(EMPTY_ADDRESS, 0)
-      .encodeABI()
-    await mockToken.givenMethodReturnBool(mockToken_transfer, true)
+    //registryContract = await Registry.new();
+    registryContract = await Registry.at("0x8f831Be87f4541C5BE706BAC1a8f0D4e53c9B7e3");
+    console.log("Registry: " + registryContract.address)
   });
 
+//  it("Test", async() => {
+//    console.log("test")
+//  })
+
+  it("Perform Invalid Calling", async() => {
+    let b = await registryContract.getPrice.call("0x677248669EBc4FCAe9F1320eFfa0BE0324B3F942", TrueCAD_ADDRESS)
+    console.log((new BigNumber(b)).toString())
+
+    //This should fail calling account does not have enough
+    await truffleAssert.reverts(
+      registryContract.call(
+        "0x677248669EBc4FCAe9F1320eFfa0BE0324B3F942",
+        TrueCAD_ADDRESS,
+        { from: callingAccount }
+      )
+    )
+  })
+
   it("Perform Calling", async() => {
-    await registryContract.setPrice(mockToken.address, 100, { from: receiverAccount })
-    let val = await registryContract.getPrice.call(receiverAccount, mockToken.address)
+    await registryContract.setPrice(TrueCAD_ADDRESS, 100)
+    let val = await registryContract.getPrice.call(receiverAccount, TrueCAD_ADDRESS)
     assert.equal((new BigNumber(val)).toString(), "100", "improper price")
 
     //put calling account on callist
     //await registryContract.addToCallList(callingAccount, { from: receiverAccount });
 
     //calling account calls
-    let trx = await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
+    let trx = await registryContract.call(receiverAccount, TrueCAD_ADDRESS, { from: callingAccount })
     console.log("Calling: \n" + callingAccount + " ----> " + receiverAccount)
     exec(VOIP + " --connect 127.0.0.1:3333", (error, stdout, stderr) => {
 //      console.log("error: " + error)
@@ -55,10 +57,10 @@ contract('Mock Calling', async (accounts) => {
     })
 
     //sleep so that the balance can be viewed online if desired
-    //execSync("sleep 10")
+    execSync("sleep 10")
 
     //receiving account is listening and answers
-    let caller
+    let caller 
     await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
       console.log("Incoming call from: " + ev.caller)
       caller = ev.caller
