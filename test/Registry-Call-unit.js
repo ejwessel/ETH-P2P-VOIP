@@ -1,5 +1,4 @@
 const Registry = artifacts.require("Registry");
-const helper = require('ganache-time-traveler');
 const truffleAssert = require('truffle-assertions');
 const MockContract = artifacts.require("MockContract");
 const ERC20 = artifacts.require("ERC20Mintable")
@@ -18,16 +17,6 @@ contract('Mock Calling', async (accounts) => {
   let mockToken
   let mockToken_transferFrom 
   let registryContract
-  let snapshotId
-
-  beforeEach(async() => {
-    let snapShot = await helper.takeSnapshot();
-    snapshotId = snapShot['result'];
-  });
-
-  afterEach(async() => {
-    await helper.revertToSnapshot(snapshotId);
-  });
 
   before(async() => {
     registryContract = await Registry.new();
