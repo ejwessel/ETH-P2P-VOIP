@@ -7,9 +7,9 @@
   },
   "scripts": {
     "ganache": "ganache-cli -d",
+    "ganache_fork": "ganache-cli -f $(node get_infura.js) -m \"$(node get_mnemonic.js)\"",
     "test": "truffle test test/Registry-unit.js",
     "call": "truffle test test/Registry-Call-unit.js"
-
   },
   "repository": {
     "type": "git",
@@ -32,5 +32,7 @@
     "truffle-assertions": "^0.9.2",
     "bignumber.js": "github:frozeman/bignumber.js-nolookahead"
   },
-  "dependencies": {}
+  "dependencies": {
+    "dotenv": "^8.2.0"
+  }
 }
