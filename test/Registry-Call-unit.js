@@ -16,44 +16,72 @@ contract('Mock Calling', async (accounts) => {
   let registryContract
 
   before(async() => {
-    registryContract = await Registry.new();
-    console.log(registryContract.address)
+    //registryContract = await Registry.new();
+    registryContract = await Registry.at("0x8f831Be87f4541C5BE706BAC1a8f0D4e53c9B7e3");
+    console.log("Registry: " + registryContract.address)
   });
 
+//  it("Test", async() => {
+//    console.log("test")
+//  })
+
   it("Perform Invalid Calling", async() => {
-    await registryContract.setPrice(TrueCAD_ADDRESS, 100)
-    await registryContract.call(
-      "0x677248669EBc4FCAe9F1320eFfa0BE0324B3F942",
-      TrueCAD_ADDRESS,
-      { from: callingAccount }
+    let b = await registryContract.getPrice.call("0x677248669EBc4FCAe9F1320eFfa0BE0324B3F942", TrueCAD_ADDRESS)
+    console.log((new BigNumber(b)).toString())
+
+    //This should fail calling account does not have enough
+    await truffleAssert.reverts(
+      registryContract.call(
+        "0x677248669EBc4FCAe9F1320eFfa0BE0324B3F942",
+        TrueCAD_ADDRESS,
+        { from: callingAccount }
+      )
     )
   })
 
   it("Perform Calling", async() => {
-    //put calling account on calllist
-    await registryContract.addToCallList(callingAccount, { from: receiverAccount });
+    await registryContract.setPrice(TrueCAD_ADDRESS, 100)
+    let val = await registryContract.getPrice.call(receiverAccount, TrueCAD_ADDRESS)
+    assert.equal((new BigNumber(val)).toString(), "100", "improper price")
+
+    //put calling account on callist
+    //await registryContract.addToCallList(callingAccount, { from: receiverAccount });
 
     //calling account calls
     let trx = await registryContract.call(receiverAccount, TrueCAD_ADDRESS, { from: callingAccount })
     console.log("Calling: \n" + callingAccount + " ----> " + receiverAccount)
     exec(VOIP + " --connect 127.0.0.1:3333", (error, stdout, stderr) => {
-      console.log("error: " + error)
-      console.log("out: " + stdout)
-      console.log("stderr: " + stderr)
+//      console.log("error: " + error)
+//      console.log("out: " + stdout)
+//      console.log("stderr: " + stderr)
+    })
+
+    //sleep so that the balance can be viewed online if desired
+    execSync("sleep 10")
+
+    //receiving account is listening and answers
+    let caller 
+    await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
+      console.log("Incoming call from: " + ev.caller)
+      caller = ev.caller
+      return true
     })
 
 
-    //receiving account is listening and answers
-    await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
-      if (ev.receiver !== receiverAccount) return false;
-      console.log("Call Answered: \n" + receiverAccount + " <---- " + callingAccount)
-      execSync(VOIP + " --listen 3333", (error, stdout, stderr) => {
-        console.log("error: " + error)
-        console.log("out: " + stdout)
-        console.log("stderr: " + stderr)
-      })
+    //receiver account answers the caller
+    trx  = await registryContract.answer(caller, { from: receiverAccount })
 
-      return true
+    await truffleAssert.eventEmitted(trx, 'AnswerCall', (ev) => {
+      if (ev.receiver !== receiverAccount) return false;
+      if (ev.caller !== callingAccount) return false;
+
+      console.log("Call Answered: \n" + receiverAccount + " <---- " + ev.caller)
+      execSync(VOIP + " --listen 3333", (error, stdout, stderr) => {
+//        console.log("error: " + error)
+//        console.log("out: " + stdout)
+//        console.log("stderr: " + stderr)
+      })
+      return true;
     })
   })
 });
