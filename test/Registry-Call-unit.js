@@ -38,30 +38,48 @@ contract('Mock Calling', async (accounts) => {
   });
 
   it("Perform Calling", async() => {
-    //put calling account on calllist
-    await registryContract.addToCallList(callingAccount, { from: receiverAccount });
+    await registryContract.setPrice(mockToken.address, 100, { from: receiverAccount })
+    let val = await registryContract.getPrice.call(receiverAccount, mockToken.address)
+    assert.equal((new BigNumber(val)).toString(), "100", "improper price")
+
+    //put calling account on callist
+    //await registryContract.addToCallList(callingAccount, { from: receiverAccount });
 
     //calling account calls
     let trx = await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
     console.log("Calling: \n" + callingAccount + " ----> " + receiverAccount)
     exec(VOIP + " --connect 127.0.0.1:3333", (error, stdout, stderr) => {
-      console.log("error: " + error)
-      console.log("out: " + stdout)
-      console.log("stderr: " + stderr)
+//      console.log("error: " + error)
+//      console.log("out: " + stdout)
+//      console.log("stderr: " + stderr)
+    })
+
+    //sleep so that the balance can be viewed online if desired
+    //execSync("sleep 10")
+
+    //receiving account is listening and answers
+    let caller
+    await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
+      console.log("Incoming call from: " + ev.caller)
+      caller = ev.caller
+      return true
     })
 
 
-    //receiving account is listening and answers
-    await truffleAssert.eventEmitted(trx, 'IncomingCall', (ev) => {
-      if (ev.receiver !== receiverAccount) return false;
-      console.log("Call Answered: \n" + receiverAccount + " <---- " + callingAccount)
-      execSync(VOIP + " --listen 3333", (error, stdout, stderr) => {
-        console.log("error: " + error)
-        console.log("out: " + stdout)
-        console.log("stderr: " + stderr)
-      })
+    //receiver account answers the caller
+    trx  = await registryContract.answer(caller, { from: receiverAccount })
 
-      return true
+    await truffleAssert.eventEmitted(trx, 'AnswerCall', (ev) => {
+      if (ev.receiver !== receiverAccount) return false;
+      if (ev.caller !== callingAccount) return false;
+
+      console.log("Call Answered: \n" + receiverAccount + " <---- " + ev.caller)
+      execSync(VOIP + " --listen 3333", (error, stdout, stderr) => {
+//        console.log("error: " + error)
+//        console.log("out: " + stdout)
+//        console.log("stderr: " + stderr)
+      })
+      return true;
     })
   })
 });
