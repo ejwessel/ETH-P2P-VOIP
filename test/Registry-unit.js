@@ -6,6 +6,7 @@ const ERC20 = artifacts.require("ERC20Mintable")
 const BigNumber = require('bignumber.js')
 const EMPTY_ADDRESS = '0x0000000000000000000000000000000000000000';
 const MAX_INT = new BigNumber("1.15792089237316195423570985008687907853269984665640564039457584007913129639935e+77")
+const PRICE_TO_SET = new BigNumber("300")
 
 contract('Registry Test', async (accounts) => {
   let receiverAccount = accounts[1]
@@ -52,15 +53,16 @@ contract('Registry Test', async (accounts) => {
     })
     
     it("test setPrice()", async () => {
-      let priceToSet = 300
-      let trx = await registryContract.setPrice(mockToken.address, priceToSet, { from: receiverAccount });
+      let trx = await registryContract.setPrice(mockToken.address, PRICE_TO_SET, { from: receiverAccount });
       let price = await registryContract.getPrice(receiverAccount, mockToken.address)
-      assert.equal(price.toNumber(), price, "invalid price set")
+      let price_BN = new BigNumber(price)
+      assert.equal(price_BN.toString(), PRICE_TO_SET.toString(), "invalid price set")
 
       await truffleAssert.eventEmitted(trx, 'PriceSet', (ev) => {
+        let price_BN = new BigNumber(ev.price)
         return ev.receiver === receiverAccount 
           && ev.token === mockToken.address 
-          && ev.price.toNumber() === priceToSet
+          && price_BN.toString() === PRICE_TO_SET.toString()
       })
     })
 
@@ -116,7 +118,7 @@ contract('Registry Test', async (accounts) => {
 
     it("test call() when caller is not on call list", async() => {
       //set price of receiver
-      await registryContract.setPrice(mockToken.address, 100, { from: receiverAccount })
+      await registryContract.setPrice(mockToken.address, PRICE_TO_SET, { from: receiverAccount })
 
       //calling account calls
       let trx = await registryContract.call(receiverAccount, mockToken.address, { from: callingAccount })
