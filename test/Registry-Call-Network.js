@@ -10,7 +10,7 @@ const exec = require("child_process").exec
 const execSync = require("child_process").execSync
 const VOIP = "node ~/Dev/tvoip/Index.js"
 
-contract('Mock Calling', async (accounts) => {
+contract('Testnet Calling', async (accounts) => {
   let receiverAccount = accounts[0]
   let callingAccount = accounts[0]
   let registryContract
