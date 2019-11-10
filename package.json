@@ -9,7 +9,8 @@
     "ganache": "ganache-cli -d",
     "ganache_fork": "ganache-cli -f $(node get_infura.js) -m \"$(node get_mnemonic.js)\"",
     "test": "truffle test test/Registry-unit.js",
-    "call": "truffle test test/Registry-Call-unit.js"
+    "call-mock": "truffle test test/Registry-Call-unit.js",
+    "call": "truffle test test/Registry-Call-Network.js" 
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,7 @@
     "bignumber.js": "github:frozeman/bignumber.js-nolookahead"
   },
   "dependencies": {
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "truffle-hdwallet-provider": "^1.0.17"
   }
 }
