@@ -11,6 +11,7 @@ contract Registry {
   event AnswerCall(address receiver, address caller, uint256 timestamp);
   event Returned(address caller, address token);
 
+  uint256 constant internal MAX_INT =  2**256 - 1;
   uint256 constant PENDING_LIMIT = 2 minutes;
 
   struct PendingAmount {
@@ -29,8 +30,9 @@ contract Registry {
   //receiver to token to price. price of 0 is undefined
   mapping(address => mapping(address => uint256)) public pricing;
 
-  function getPrice(address account, address token) external view returns(uint256) {
-   return pricing[account][token];
+  function getPrice(address receiver, address token) public view returns(uint256) {
+    uint256 price = (pricing[receiver][token] == 0) ? MAX_INT : pricing[receiver][token]; 
+    return price;
   }
   
   function setPrice(address token, uint256 price) external {
@@ -59,7 +61,10 @@ contract Registry {
     //if they're not allowed to call the receiver they need to pay
     if (!this.canCall(msg.sender, receiver)) {
       //keep track of how much can be withdrawn
-      pendingAmount[msg.sender][receiver] = PendingAmount(token, pricing[receiver][token], currentTime); 
+      
+      //0 is not an allowed price if user has no price, defaults to max
+      uint256 price = this.getPrice(receiver, token);
+      pendingAmount[msg.sender][receiver] = PendingAmount(token, price, currentTime); 
 
       //money is moved into the contract temporarily and is locked for a duration
       IERC20(token).transferFrom(msg.sender, address(this), pricing[receiver][token]);
