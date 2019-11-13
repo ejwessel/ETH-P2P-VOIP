@@ -4,7 +4,7 @@
 - This contract has not been audited.
 - I have only tested this on MacOSX.
 
-[Watch my EthWaterloo Finalist Presentation](https://youtu.be/suS8nprnVk0?t=3419)
+[Watch my EthWaterloo Presentation](https://youtu.be/suS8nprnVk0?t=3419)
 
 [Read me DevPost Project](https://devpost.com/software/eth-p2p-voip-e-th-phonehome)
 
