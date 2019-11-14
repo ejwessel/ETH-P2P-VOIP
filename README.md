@@ -15,3 +15,16 @@
 ## How to run
 1. `npm install`
 1. `yarn call --network kovan`
+
+## Callable Methods on Registry Contract
+```
+ +  Registry
+    - [Pub] getPrice
+    - [Ext] setPrice #
+    - [Pub] canCall
+    - [Ext] addToCallList #
+    - [Ext] removeFromCallList #
+    - [Ext] call #
+    - [Ext] answer #
+    - [Ext] withdraw #
+```
