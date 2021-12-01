@@ -8,6 +8,8 @@
 
 [Read me DevPost Project](https://devpost.com/software/eth-p2p-voip-e-th-phonehome)
 
+[Listen to me on 'Into the Ether' 00:25:58](https://podcast.ethhub.io/ethwaterloo-recap-part-2)
+
 ## Dependencies
 - `brew install sox` http://sox.sourceforge.net/sox.html
 - https://github.com/T-vK/tvoip
